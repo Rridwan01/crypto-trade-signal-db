@@ -2,13 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import ccxt.async_support as ccxt
 import pandas as pd
+import asyncio
 
 app = FastAPI()
 
-# IMPORTANT: This allows your React app (running on a different port) to talk to Python safely
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, you'd restrict this to your React app's URL
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,7 +22,6 @@ def find_unmitigated_fvgs(df):
         c2 = df.iloc[i-1] 
         c3 = df.iloc[i]
 
-        # 🟢 Bullish FVG
         if c1['high'] < c3['low'] and c2['close'] > c2['open']:
             top = c3['low']
             bottom = c1['high']
@@ -34,12 +33,11 @@ def find_unmitigated_fvgs(df):
             if not mitigated:
                 signals.append({
                     'type': 'BULLISH FVG',
-                    'time': str(c2['timestamp']), # Converted to string for JSON compatibility
-                    'zone': f"{bottom} to {top}",
+                    'time': str(c2['timestamp']),
+                    'zone': f"{bottom:,.2f} to {top:,.2f}",
                     'gap_size': round(top - bottom, 2)
                 })
 
-        # 🔴 Bearish FVG
         elif c1['low'] > c3['high'] and c2['close'] < c2['open']:
             top = c1['low']
             bottom = c3['high']
@@ -52,28 +50,85 @@ def find_unmitigated_fvgs(df):
                 signals.append({
                     'type': 'BEARISH FVG',
                     'time': str(c2['timestamp']),
-                    'zone': f"{bottom} to {top}",
+                    'zone': f"{bottom:,.2f} to {top:,.2f}",
                     'gap_size': round(top - bottom, 2)
                 })
     return signals
 
-# This creates an API endpoint at http://localhost:8000/api/signals
+def analyze_market_structure(df, asset_key):
+    """Calculates Trend, Logic, and Supply/Demand Zones dynamically."""
+    df['sma_20'] = df['close'].rolling(window=20).mean()
+    current_close = df.iloc[-1]['close']
+    current_sma = df.iloc[-1]['sma_20']
+    
+    # Calculate percentage distance from SMA to measure momentum
+    distance_from_sma = ((current_close - current_sma) / current_sma) * 100
+
+    if current_close > current_sma:
+        trend = "bullish"
+        if distance_from_sma > 1.5:
+            signal_text = "STRONG LONGS FAVORED"
+            reasoning = f"Extreme momentum. {asset_key} is heavily extended +{distance_from_sma:.2f}% above the 20-SMA. Watch for minor pullbacks into demand."
+            action_text = f"BUY DIPS - wait for FVG mitigation"
+        else:
+            signal_text = "LONGS FAVORED"
+            reasoning = f"Steady structure. {asset_key} is holding +{distance_from_sma:.2f}% above the 20-SMA. Institutional order flow remains bullish."
+            action_text = f"TAKE {asset_key} LONG - macro confirmed"
+    else:
+        trend = "bearish"
+        if distance_from_sma < -1.5:
+            signal_text = "STRONG SHORTS FAVORED"
+            reasoning = f"Heavy sell-off. {asset_key} is deeply extended {distance_from_sma:.2f}% below the 20-SMA. Sellers are aggressively trapping liquidity."
+            action_text = f"SELL RALLIES - wait for premium supply"
+        else:
+            signal_text = "SHORTS FAVORED"
+            reasoning = f"Weak structure. {asset_key} is drifting {distance_from_sma:.2f}% below the 20-SMA. Buyers failing to break market structure."
+            action_text = f"TAKE {asset_key} SHORT - resistance held"
+
+    highest_candle = df.loc[df['high'].idxmax()]
+    lowest_candle = df.loc[df['low'].idxmin()]
+
+    return {
+        "name": asset_key,
+        "trend": trend,
+        "signalText": signal_text,
+        "reasoning": reasoning,
+        "actionText": action_text,
+        "zones": {
+            "supplyHigh": f"{highest_candle['high']:,.2f}",
+            "supplyLow": f"{max(highest_candle['open'], highest_candle['close']):,.2f}",
+            "demandHigh": f"{min(lowest_candle['open'], lowest_candle['close']):,.2f}",
+            "demandLow": f"{lowest_candle['low']:,.2f}"
+        }
+    }
 @app.get("/api/signals")
 async def get_signals():
     exchange = ccxt.bybit({'enableRateLimit': True})
+    
+    # We will fetch data for all three dashboard assets
+    symbols = ['BTC/USDT', 'SOL/USDT', 'ETH/USDT']
+    market_data = {}
+
     try:
-        # Fetch fresh data the moment React asks for it
-        candles = await exchange.fetch_ohlcv('BTC/USDT', '15m', limit=50)
-        df = pd.DataFrame(candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        
-        signals = find_unmitigated_fvgs(df)
-        
+        for symbol in symbols:
+            asset_key = symbol.split('/')[0] # Extracts 'BTC', 'SOL', or 'ETH'
+            
+            # Fetch 50 candles on the 15-minute timeframe
+            candles = await exchange.fetch_ohlcv(symbol, '15m', limit=50)
+            df = pd.DataFrame(candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+
+            # Run our algorithmic scanners
+            active_signals = find_unmitigated_fvgs(df)
+            structure = analyze_market_structure(df, asset_key)
+            
+            # Bundle the FVG signals into the structure object
+            structure["active_signals"] = active_signals
+            market_data[asset_key] = structure
+
         return {
             "status": "success",
-            "symbol": "BTC/USDT",
-            "timeframe": "15m",
-            "active_signals": signals
+            "data": market_data
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
