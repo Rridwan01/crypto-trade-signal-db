@@ -3,13 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 import ccxt.async_support as ccxt
 import pandas as pd
 import asyncio
-
 import urllib.request
 import json
-import asyncio
+import os
+from dotenv import load_dotenv
 
-TELEGRAM_BOT_TOKEN = "8464339817:AAH01J_C0NbesON-nBFhz9xmnT3xzk6kn-o"
-TELEGRAM_CHAT_ID = "1284350797"
+# Load environment variables from .env file
+load_dotenv()
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 ALERTED_SIGNALS = set()
 
 def send_telegram_alert(asset, signal_type, zone, gap_size):
