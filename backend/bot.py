@@ -4,6 +4,36 @@ import ccxt.async_support as ccxt
 import pandas as pd
 import asyncio
 
+import urllib.request
+import json
+import asyncio
+
+TELEGRAM_BOT_TOKEN = "8464339817:AAH01J_C0NbesON-nBFhz9xmnT3xzk6kn-o"
+TELEGRAM_CHAT_ID = "1284350797"
+ALERTED_SIGNALS = set()
+
+def send_telegram_alert(asset, signal_type, zone, gap_size):
+    if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN":
+        return
+
+    icon = "🟢" if "BULLISH" in signal_type else "🔴"
+    # Formatting with Markdown for clean bold text
+    text = f"{icon} *{signal_type} DETECTED* {icon}\n*Asset:* {asset}/USDT\n*Zone:* {zone}\n*Gap Size:* {gap_size} points\n_Awaiting mitigation for entry._"
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = json.dumps({
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text,
+        "parse_mode": "Markdown"
+    }).encode('utf-8')
+    
+    try:
+        req = urllib.request.Request(url, data=payload, method='POST')
+        req.add_header('Content-Type', 'application/json')
+        urllib.request.urlopen(req)
+    except Exception as e:
+        print(f"🔴 Failed to send Telegram alert: {e}")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -121,6 +151,19 @@ async def get_signals():
             # Run our algorithmic scanners
             active_signals = find_unmitigated_fvgs(df)
             structure = analyze_market_structure(df, asset_key)
+            
+            # --- TELEGRAM ALERT LOGIC ---
+            for sig in active_signals:
+                unique_sig_id = f"{asset_key}_{sig['time']}"
+                
+                if unique_sig_id not in ALERTED_SIGNALS:
+                    ALERTED_SIGNALS.add(unique_sig_id)
+                    send_telegram_alert(
+                        asset=asset_key, 
+                        signal_type=sig['type'], 
+                        zone=sig['zone'], 
+                        gap_size=sig['gap_size']
+                    )
             
             # Bundle the FVG signals into the structure object
             structure["active_signals"] = active_signals

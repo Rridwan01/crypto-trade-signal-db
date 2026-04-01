@@ -62,6 +62,29 @@ function App() {
   const [botData, setBotData] = useState<BotData | null>(null);
   const [botLoading, setBotLoading] = useState(true);
 
+  interface LogEvent {
+    id: number;
+    time: string;
+    message: string;
+    type: "info" | "success" | "alert";
+  }
+  const [logs, setLogs] = useState<LogEvent[]>([]);
+
+  const addLog = (
+    message: string,
+    type: "info" | "success" | "alert" = "info",
+  ) => {
+    setLogs((prev) => {
+      const newLog = {
+        id: Date.now(),
+        time: new Date().toLocaleTimeString(),
+        message,
+        type,
+      };
+      return [newLog, ...prev].slice(0, 15); // Keep only the latest 15 logs
+    });
+  };
+
   useEffect(() => {
     const fetchSignals = async () => {
       try {
@@ -69,6 +92,22 @@ function App() {
         const result = await response.json();
         if (result.status === "success") {
           setBotData(result.data);
+
+          // Generate logs based on what the bot found!
+          let totalSignals = 0;
+          Object.values(result.data).forEach((assetData) => {
+            const asset = assetData as BotSignalData;
+            totalSignals += asset.active_signals?.length || 0;
+          });
+
+          if (totalSignals > 0) {
+            addLog(
+              `Matrix sync complete. Found ${totalSignals} active institutional zones.`,
+              "alert",
+            );
+          } else {
+            addLog(`Matrix sync complete. Market is balanced.`, "success");
+          }
         }
       } catch (error) {
         console.error("🔴 Error fetching from Python Bot:", error);
@@ -261,10 +300,39 @@ function App() {
               Clear
             </button>
           </div>
-          <div className="font-mono text-xs flex flex-col gap-3">
-            <div className="text-gray-500 italic bg-gray-800/30 p-3 rounded text-center">
-              Awaiting live system events...
-            </div>
+          <div className="font-mono text-xs flex flex-col gap-3 h-32 overflow-y-auto pr-2">
+            {logs.length === 0 ? (
+              <div className="text-gray-500 italic bg-gray-800/30 p-3 rounded text-center">
+                Awaiting live system events...
+              </div>
+            ) : (
+              logs.map((log) => (
+                <div
+                  key={log.id}
+                  className="text-gray-300 border-b border-gray-800/50 pb-2 last:border-0"
+                >
+                  <span className="text-gray-500 w-24 inline-block">
+                    {log.time}
+                  </span>
+                  <span
+                    className={`${
+                      log.type === "alert"
+                        ? "text-rose-400 font-bold"
+                        : log.type === "success"
+                          ? "text-emerald-400"
+                          : "text-gray-400"
+                    }`}
+                  >
+                    {log.type === "alert"
+                      ? "⚠ "
+                      : log.type === "success"
+                        ? "✓ "
+                        : "ℹ "}
+                    {log.message}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </div>
