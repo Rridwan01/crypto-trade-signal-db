@@ -134,6 +134,11 @@ def analyze_market_structure(df, asset_key):
             "demandLow": f"{lowest_candle['low']:,.2f}"
         }
     }
+
+@app.get("/")
+async def root():
+    return {"status": "online", "system": "SMC Matrix Backend Active"}
+
 @app.get("/api/signals")
 async def get_signals():
     exchange = ccxt.bybit({'enableRateLimit': True})
