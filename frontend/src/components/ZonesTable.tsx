@@ -6,56 +6,84 @@ interface ZonesTableProps {
   demandLow: string;
 }
 
-function ZonesTable({
-  asset,
-  supplyHigh,
-  supplyLow,
-  demandHigh,
-  demandLow
-}: ZonesTableProps) {
+function ZonesTable({ asset, supplyHigh, supplyLow, demandHigh, demandLow }: ZonesTableProps) {
   return (
-    <div className="w-full font-mono text-sm">
-      <div className="flex justify-between items-center mb-2 px-1">
-         <div className="text-[10px] text-emerald-400 tracking-widest uppercase">{asset} ZONES</div>
-         <div className="text-[10px] text-gray-500 uppercase tracking-widest">ZONE LEVELS</div>
-      </div>
-      
-      {/* Partitioned Data Box */}
-      <div className="border border-gray-700/60 rounded bg-[#0d0d0d] overflow-hidden">
-        {/* Divide X creates the vertical center line, Divide Y creates the horizontal lines */}
-        <div className="grid grid-cols-2 divide-x divide-gray-700/60">
-          
-          {/* Top Left: Supply High */}
-          <div className="p-3 flex flex-col gap-1 border-b border-gray-700/60">
-            <div className="text-gray-500 text-[10px] uppercase tracking-widest">SUPPLY HIGH</div>
-            <div className="text-gray-200 text-sm">e.g. {supplyHigh}</div>
-          </div>
+    <div style={{ fontFamily: "Tahoma, 'Verdana', sans-serif", fontSize: "11px" }}>
 
-          {/* Top Right: Supply Low */}
-          <div className="p-3 flex flex-col gap-1 border-b border-gray-700/60">
-            <div className="text-gray-500 text-[10px] uppercase tracking-widest">SUPPLY LOW</div>
-            <div className="text-gray-200 text-sm">e.g. {supplyLow}</div>
-          </div>
-
-          {/* Bottom Left: Demand High */}
-          <div className="p-3 flex flex-col gap-1">
-            <div className="text-gray-500 text-[10px] uppercase tracking-widest">DEMAND HIGH</div>
-            <div className="text-gray-200 text-sm">e.g. {demandHigh}</div>
-          </div>
-
-          {/* Bottom Right: Demand Low */}
-          <div className="p-3 flex flex-col gap-1">
-            <div className="text-gray-500 text-[10px] uppercase tracking-widest">DEMAND LOW</div>
-            <div className="text-gray-200 text-sm">e.g. {demandLow}</div>
-          </div>
-
-        </div>
-      </div>
-      
-      <div className="flex justify-end mt-2 px-1">
-        <button className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors uppercase tracking-widest cursor-pointer">
-          Recalc
+      {/* Section label */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "4px",
+      }}>
+        <span style={{ fontWeight: "bold", fontSize: "11px" }}>{asset} Zone Levels</span>
+        <button className="win-btn" style={{ fontSize: "10px", padding: "1px 6px" }}>
+          Recalculate
         </button>
+      </div>
+
+      {/* ListView-style table */}
+      <div className="win-listview">
+        {/* Header */}
+        <div className="win-listview-header" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+          <div className="win-listview-header-cell">Zone Type</div>
+          <div className="win-listview-header-cell">Level</div>
+          <div className="win-listview-header-cell">Value</div>
+        </div>
+
+        {/* Supply High */}
+        <div className="win-listview-row" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+          <div className="win-listview-cell" style={{ color: "#800000", fontWeight: "bold" }}>
+            &#9650; Supply
+          </div>
+          <div className="win-listview-cell">HIGH</div>
+          <div className="win-listview-cell" style={{ fontFamily: "Courier New, monospace", fontWeight: "bold" }}>
+            {supplyHigh}
+          </div>
+        </div>
+
+        {/* Supply Low */}
+        <div className="win-listview-row" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+          <div className="win-listview-cell" style={{ color: "#800000", fontWeight: "bold" }}>
+            &#9650; Supply
+          </div>
+          <div className="win-listview-cell">LOW</div>
+          <div className="win-listview-cell" style={{ fontFamily: "Courier New, monospace", fontWeight: "bold" }}>
+            {supplyLow}
+          </div>
+        </div>
+
+        {/* Demand High */}
+        <div className="win-listview-row" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+          <div className="win-listview-cell" style={{ color: "#008000", fontWeight: "bold" }}>
+            &#9660; Demand
+          </div>
+          <div className="win-listview-cell">HIGH</div>
+          <div className="win-listview-cell" style={{ fontFamily: "Courier New, monospace", fontWeight: "bold" }}>
+            {demandHigh}
+          </div>
+        </div>
+
+        {/* Demand Low */}
+        <div className="win-listview-row" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+          <div className="win-listview-cell" style={{ color: "#008000", fontWeight: "bold" }}>
+            &#9660; Demand
+          </div>
+          <div className="win-listview-cell">LOW</div>
+          <div className="win-listview-cell" style={{ fontFamily: "Courier New, monospace", fontWeight: "bold" }}>
+            {demandLow}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Status bar for table */}
+      <div className="win-statusbar" style={{ marginTop: "1px" }}>
+        <div className="win-status-panel">4 objects</div>
+        <div className="win-status-panel" style={{ flex: 1 }}>
+          Supply: red&nbsp;&nbsp;|&nbsp;&nbsp;Demand: green
+        </div>
       </div>
     </div>
   );

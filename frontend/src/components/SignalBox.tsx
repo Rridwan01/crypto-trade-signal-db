@@ -7,48 +7,63 @@ interface SignalBoxProps {
   lastUpdate: string;
 }
 
-function SignalBox({
-  asset,
-  type,
-  signalText,
-  reasoning,
-  actionText,
-  lastUpdate
-}: SignalBoxProps) {
-  
+function SignalBox({ asset, type, signalText, reasoning, actionText, lastUpdate }: SignalBoxProps) {
   const isBullish = type === 'bullish';
-  
-  const baseColor = isBullish ? 'text-emerald-400' : 'text-rose-400';
-  const borderColor = isBullish ? 'border-emerald-900/60' : 'border-rose-900/60';
-  const bgColor = isBullish ? 'bg-emerald-950/10' : 'bg-rose-950/10';
-  const icon = isBullish ? '▲' : '▼';
 
   return (
-    <div className={`border border-gray-700/60 bg-[#121212] rounded p-4 flex flex-col justify-between font-mono h-full`}>
-      <div className="flex flex-col gap-3">
-        <div className="flex justify-between items-center border-b border-gray-700/60 pb-2">
-          <div className="text-[10px] text-gray-500 tracking-widest uppercase">{asset} TRADE SIGNAL</div>
+    <div style={{ fontFamily: "Tahoma, 'Verdana', sans-serif", fontSize: "11px" }}>
+      {/* Signal header row */}
+      <div style={{ marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+        <div style={{
+          fontFamily: "Tahoma, sans-serif",
+          fontSize: "11px",
+          fontWeight: "bold",
+          color: isBullish ? "#008000" : "#800000",
+          padding: "1px 4px",
+          border: `1px solid ${isBullish ? "#008000" : "#800000"}`,
+          backgroundColor: isBullish ? "#e0ffe0" : "#ffe0e0",
+        }}>
+          {isBullish ? "▲" : "▼"} {asset} TRADE SIGNAL
+        </div>
+        <div style={{ fontSize: "9px", color: "#808080" }}>Updated: {lastUpdate}</div>
+      </div>
+
+      {/* The tinted signal box - Win2K GroupBox style */}
+      <div className="win-groupbox" style={{ marginTop: "0", position: "relative" }}>
+        <div style={{
+          position: "absolute", top: "-8px", left: "8px",
+          backgroundColor: "#d4d0c8", padding: "0 4px",
+          fontFamily: "Tahoma, sans-serif", fontSize: "11px", fontWeight: "bold",
+          color: isBullish ? "#008000" : "#800000"
+        }}>
+          {signalText}
         </div>
 
-        {/* The tinted signal box inside the card */}
-        <div className={`border ${borderColor} ${bgColor} p-3 rounded-sm`}>
-          <div className={`text-lg font-bold tracking-widest ${baseColor} mb-2`}>
-            {signalText}
-          </div>
-          <div className="text-xs text-gray-400 flex items-start gap-2 leading-relaxed">
-            <span className="text-gray-600 mt-0.5">✓</span>
-            <p>{reasoning}</p>
-          </div>
+        <div style={{ display: "flex", gap: "4px", alignItems: "flex-start", marginTop: "4px" }}>
+          <span style={{ color: "#808080", flexShrink: 0 }}>&#9658;</span>
+          <p style={{ margin: 0, color: "#000000", lineHeight: "1.5", fontSize: "11px" }}>
+            {reasoning}
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-col mt-4">
-        <div className={`py-2 px-3 border ${borderColor} ${baseColor} text-xs font-bold flex items-center gap-2 bg-[#0d0d0d] rounded-sm`}>
-          <span>{icon}</span> {actionText}
-        </div>
-
-        <div className="text-[10px] text-gray-600 mt-3 uppercase tracking-widest px-1">
-          LAST UPDATE: {lastUpdate}
+      {/* Action Button - classic Win2K raised style */}
+      <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+        <button
+          className="win-btn"
+          style={{
+            backgroundColor: isBullish ? "#d4edd4" : "#edd4d4",
+            borderTopColor: isBullish ? "#aaffaa" : "#ffaaaa",
+            borderLeftColor: isBullish ? "#aaffaa" : "#ffaaaa",
+            fontWeight: "bold",
+            color: isBullish ? "#004400" : "#440000",
+            minWidth: "120px",
+          }}
+        >
+          {isBullish ? "▲" : "▼"} {actionText}
+        </button>
+        <div style={{ fontSize: "10px", color: "#808080", fontStyle: "italic" }}>
+          Click to set alert
         </div>
       </div>
     </div>

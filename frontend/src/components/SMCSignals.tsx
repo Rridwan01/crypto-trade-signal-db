@@ -13,42 +13,108 @@ interface SMCSignalsProps {
 
 export default function SMCSignals({ signals = [], loading, asset }: SMCSignalsProps) {
   return (
-    <div className="p-6 bg-[#161616] rounded-lg border border-gray-700/60 text-gray-300 shadow-2xl h-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-sm font-bold tracking-widest uppercase text-gray-500">Active Algorithmic FVGs</h2>
-        <span className="text-xs font-medium px-2 py-1 bg-gray-800 rounded text-gray-400">
-          {asset}/USDT • 15m
+    <div style={{ fontFamily: "Tahoma, 'Verdana', sans-serif", fontSize: "11px" }}>
+      {/* Toolbar-style header */}
+      <div style={{
+        backgroundColor: "#d4d0c8",
+        borderBottom: "1px solid #808080",
+        padding: "3px 6px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "4px",
+      }}>
+        <span style={{ fontWeight: "bold", fontSize: "11px" }}>
+          Algorithmic FVGs — {asset}/USDT • 15m
+        </span>
+        <span style={{
+          fontSize: "10px",
+          color: "#808080",
+          border: "1px solid #808080",
+          padding: "0 4px",
+          backgroundColor: "#ffffff",
+        }}>
+          {signals.length} active
         </span>
       </div>
 
       {loading ? (
-        <div className="text-gray-400 animate-pulse text-sm italic p-4 text-center">Scanning market data...</div>
+        <div style={{
+          padding: "8px",
+          color: "#808080",
+          fontStyle: "italic",
+          textAlign: "center",
+          border: "2px solid",
+          borderTopColor: "#808080",
+          borderLeftColor: "#808080",
+          borderBottomColor: "#ffffff",
+          borderRightColor: "#ffffff",
+          backgroundColor: "#ffffff",
+        }}>
+          &#9203; Scanning market data...
+        </div>
       ) : signals.length === 0 ? (
-        <div className="text-gray-500 text-sm italic bg-gray-800/30 p-4 rounded text-center">
-          ⚖️ Market is balanced. No active signals.
+        <div style={{
+          padding: "8px",
+          color: "#808080",
+          fontStyle: "italic",
+          textAlign: "center",
+          border: "2px solid",
+          borderTopColor: "#808080",
+          borderLeftColor: "#808080",
+          borderBottomColor: "#ffffff",
+          borderRightColor: "#ffffff",
+          backgroundColor: "#ffffff",
+        }}>
+          Market is balanced — No active FVG signals
         </div>
       ) : (
-        <div className="space-y-3">
-          {signals.map((sig, index) => (
-            <div 
-              key={index} 
-              className={`p-3 rounded border flex flex-col gap-1 ${
-                sig.type.includes('BULLISH') 
-                  ? 'bg-emerald-950/20 border-emerald-900/50 text-emerald-400' 
-                  : 'bg-rose-950/20 border-rose-900/50 text-rose-400'
-              }`}
-            >
-              <div className="flex justify-between font-bold text-xs tracking-widest">
-                <span>{sig.type.includes('BULLISH') ? '🟢' : '🔴'} {sig.type}</span>
-                <span className="opacity-75">{sig.time.split(' ')[1]}</span>
+        <div className="win-listview">
+          {/* Header */}
+          <div className="win-listview-header" style={{ gridTemplateColumns: "2fr 1fr 2fr" }}>
+            <div className="win-listview-header-cell">Signal Type</div>
+            <div className="win-listview-header-cell">Time</div>
+            <div className="win-listview-header-cell">Zone</div>
+          </div>
+
+          {signals.map((sig, index) => {
+            const isBullish = sig.type.includes('BULLISH');
+            return (
+              <div
+                key={index}
+                className="win-listview-row"
+                style={{ gridTemplateColumns: "2fr 1fr 2fr" }}
+              >
+                <div
+                  className="win-listview-cell"
+                  style={{
+                    color: isBullish ? "#008000" : "#800000",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {isBullish ? "▲" : "▼"} {sig.type}
+                </div>
+                <div className="win-listview-cell" style={{ color: "#808080", fontFamily: "Courier New, monospace" }}>
+                  {sig.time ? sig.time.split(' ')[1] || sig.time : "---"}
+                </div>
+                <div className="win-listview-cell" style={{ fontFamily: "Courier New, monospace" }}>
+                  {sig.zone}
+                </div>
               </div>
-              <div className="text-sm font-mono text-gray-300 mt-1">
-                Zone: <span className="text-white">{sig.zone}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      {/* Status bar */}
+      <div className="win-statusbar" style={{ marginTop: "1px" }}>
+        <div className="win-status-panel">
+          {signals.length} item{signals.length !== 1 ? "s" : ""}
+        </div>
+        <div className="win-status-panel" style={{ flex: 1 }}>
+          {loading ? "Syncing..." : "Ready"}
+        </div>
+      </div>
     </div>
   );
 }

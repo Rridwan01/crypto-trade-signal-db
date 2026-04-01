@@ -1,7 +1,362 @@
 @import "tailwindcss";
 
-/* Base terminal styling */
+/* =============================================
+   WINDOWS 2000 CLASSIC THEME
+   Color palette:
+   --win-gray:    #d4d0c8  (classic silver)
+   --win-dark:    #808080  (shadow)
+   --win-light:   #ffffff  (highlight)
+   --win-navy:    #000080  (title bar)
+   --win-text:    #000000  (black text)
+============================================= */
+
+:root {
+  --win-gray: #d4d0c8;
+  --win-dark: #808080;
+  --win-darkest: #404040;
+  --win-light: #ffffff;
+  --win-navy: #000080;
+  --win-navy-light: #1084d0;
+  --win-text: #000000;
+  --win-desktop: #008080;
+  --win-green: #008000;
+  --win-red: #800000;
+  --win-yellow: #808000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background-color: #0a0a0a;
-  color: #e5e5e5;
+  background-color: var(--win-desktop);
+  color: var(--win-text);
+  font-family: 'Tahoma', 'Verdana', 'Arial', sans-serif;
+  font-size: 11px;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---- WIN2K RAISED BUTTON (3D bevel) ---- */
+.win-btn {
+  background-color: var(--win-gray);
+  color: var(--win-text);
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-darkest);
+  border-right: 2px solid var(--win-darkest);
+  cursor: pointer;
+  outline: none;
+  min-height: 21px;
+  white-space: nowrap;
+}
+.win-btn:active {
+  border-top: 2px solid var(--win-darkest);
+  border-left: 2px solid var(--win-darkest);
+  border-bottom: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-light);
+  padding: 3px 7px 1px 9px;
+}
+.win-btn:focus {
+  outline: 1px dotted var(--win-text);
+  outline-offset: -4px;
+}
+
+/* ---- WIN2K INSET PANEL (sunken) ---- */
+.win-inset {
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-light);
+  background-color: var(--win-light);
+}
+
+/* ---- WIN2K RAISED PANEL ---- */
+.win-raised {
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-darkest);
+  border-right: 2px solid var(--win-darkest);
+  background-color: var(--win-gray);
+}
+
+/* ---- WIN2K WINDOW FRAME ---- */
+.win-window {
+  background-color: var(--win-gray);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-darkest);
+  border-right: 2px solid var(--win-darkest);
+  padding: 3px;
+}
+
+/* ---- WIN2K TITLE BAR ---- */
+.win-titlebar {
+  background: linear-gradient(to right, var(--win-navy), var(--win-navy-light));
+  color: white;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 22px;
+  user-select: none;
+}
+
+/* ---- WIN2K TITLE BAR BUTTONS ---- */
+.win-titlebar-btn {
+  background-color: var(--win-gray);
+  border-top: 1px solid var(--win-light);
+  border-left: 1px solid var(--win-light);
+  border-bottom: 1px solid var(--win-darkest);
+  border-right: 1px solid var(--win-darkest);
+  width: 16px;
+  height: 14px;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--win-text);
+  font-weight: bold;
+  padding: 0;
+  line-height: 1;
+}
+
+/* ---- WIN2K MENU BAR ---- */
+.win-menubar {
+  background-color: var(--win-gray);
+  border-bottom: 1px solid var(--win-dark);
+  padding: 2px 4px;
+  display: flex;
+  gap: 0;
+}
+.win-menuitem {
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.win-menuitem:hover {
+  background-color: var(--win-navy);
+  color: white;
+}
+
+/* ---- WIN2K SELECT / INPUT ---- */
+.win-select, .win-input {
+  background-color: var(--win-light);
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-light);
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+  color: var(--win-text);
+  padding: 1px 4px;
+  outline: none;
+  height: 21px;
+}
+
+/* ---- WIN2K STATUS BAR ---- */
+.win-statusbar {
+  background-color: var(--win-gray);
+  border-top: 2px solid var(--win-dark);
+  padding: 2px 6px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.win-status-panel {
+  border-top: 1px solid var(--win-dark);
+  border-left: 1px solid var(--win-dark);
+  border-bottom: 1px solid var(--win-light);
+  border-right: 1px solid var(--win-light);
+  padding: 1px 6px;
+  font-size: 10px;
+}
+
+/* ---- WIN2K SEPARATOR ---- */
+.win-sep {
+  width: 2px;
+  background:
+    linear-gradient(to right, var(--win-dark) 0, var(--win-dark) 1px, var(--win-light) 1px, var(--win-light) 2px);
+  margin: 2px 3px;
+  align-self: stretch;
+}
+.win-hsep {
+  height: 2px;
+  background:
+    linear-gradient(to bottom, var(--win-dark) 0, var(--win-dark) 1px, var(--win-light) 1px, var(--win-light) 2px);
+  margin: 2px 0;
+}
+
+/* ---- WIN2K GROUP BOX ---- */
+.win-groupbox {
+  border: 1px solid var(--win-dark);
+  border-top: 1px solid var(--win-light);
+  padding: 8px 6px 6px;
+  margin-top: 8px;
+  position: relative;
+}
+
+/* ---- WIN2K LISTVIEW ---- */
+.win-listview {
+  background-color: var(--win-light);
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-light);
+  overflow: auto;
+}
+.win-listview-header {
+  background-color: var(--win-gray);
+  display: grid;
+  font-size: 11px;
+  font-weight: bold;
+}
+.win-listview-header-cell {
+  padding: 2px 6px;
+  border-right: 1px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-dark);
+  border-top: 1px solid var(--win-light);
+  border-left: 1px solid var(--win-light);
+}
+.win-listview-row {
+  display: grid;
+  border-bottom: 1px solid #c0c0c0;
+}
+.win-listview-row:hover {
+  background-color: #316ac5;
+  color: white;
+}
+.win-listview-cell {
+  padding: 2px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+}
+
+/* ---- WIN2K SCROLLBAR ---- */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+::-webkit-scrollbar-track {
+  background-color: var(--win-gray);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--win-gray);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-darkest);
+  border-right: 2px solid var(--win-darkest);
+}
+::-webkit-scrollbar-button {
+  background-color: var(--win-gray);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-darkest);
+  border-right: 2px solid var(--win-darkest);
+  height: 16px;
+  width: 16px;
+}
+
+/* ---- WIN2K PROGRESS BAR ---- */
+.win-progress {
+  background-color: var(--win-light);
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-light);
+  height: 14px;
+  overflow: hidden;
+}
+.win-progress-fill {
+  height: 100%;
+  background-color: var(--win-navy);
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--win-navy) 0px,
+    var(--win-navy) 9px,
+    var(--win-navy-light) 9px,
+    var(--win-navy-light) 10px
+  );
+}
+
+/* ---- BLINKING CURSOR ---- */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* ---- WIN2K TICKER TAPE ---- */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ---- WIN2K TASKBAR ---- */
+.win-taskbar {
+  background-color: var(--win-gray);
+  border-top: 2px solid var(--win-light);
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 4px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.win-start-btn {
+  background-color: var(--win-gray);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-darkest);
+  border-right: 2px solid var(--win-darkest);
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 8px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- WIN2K CHECKBOX ---- */
+.win-checkbox {
+  width: 13px;
+  height: 13px;
+  appearance: none;
+  background-color: var(--win-light);
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-light);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ---- WIN2K TOOLTIP ---- */
+.win-tooltip {
+  background-color: #ffffe1;
+  border: 1px solid var(--win-text);
+  padding: 2px 4px;
+  font-size: 11px;
+  font-family: 'Tahoma', sans-serif;
 }
