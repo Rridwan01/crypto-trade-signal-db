@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { SignalBox } from "./components/SignalBox";
 import { ZonesTable } from "./components/ZonesTable";
 import SMCSignals from "./components/SMCSignals";
-// import TradingChart from "./components/TradingChart";
+import TradingChart from "./components/TradingChart";
 import { useBybitTicker } from "./hooks/useBybitTicker";
 
 type AssetKey = "BTC" | "SOL" | "ETH";
@@ -109,8 +109,8 @@ function App() {
             addLog(`Matrix sync complete. Market is balanced.`, "success");
           }
         }
-      } catch (error) {
-        console.error("🔴 Error fetching from Python Bot:", error);
+      } catch {
+        // Silent error handling - signal sync failed, app continues with fallback data
       } finally {
         setBotLoading(false);
       }
@@ -264,13 +264,13 @@ function App() {
         </section>
 
         {/* --- THE VISUAL MATRIX (CHART) --- */}
-        {/* <div className="lg:col-span-2 mt-2 mb-2">
+        <div className="lg:col-span-2 mt-2 mb-2">
           <TradingChart
             asset={leftAsset}
             zones={leftData.zones}
             signals={leftData.active_signals}
           />
-        </div> */}
+        </div>
 
         {/* --- LIVE FVG SIGNALS (LEFT COLUMN) --- */}
         <div>

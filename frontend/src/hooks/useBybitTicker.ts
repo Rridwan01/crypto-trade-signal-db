@@ -27,7 +27,7 @@ export function useBybitTicker() {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log("🟢 Connected to Bybit WebSocket");
+        // WebSocket connected
         
         // 1. Subscribe to the data
         ws.send(JSON.stringify({
@@ -73,13 +73,12 @@ export function useBybitTicker() {
         }
       };
 
-      ws.onerror = (error) => {
-        console.error("🔴 WebSocket Error: ", error);
-        // Do not attempt to reconnect here, let onclose handle it
+      ws.onerror = () => {
+        // WebSocket error - will be handled by onclose
       };
 
       ws.onclose = () => {
-        console.log("🟡 WebSocket Disconnected. Reconnecting in 3s...");
+        // WebSocket disconnected - reconnecting in 3s
         clearInterval(pingInterval);
         reconnectTimeout = setTimeout(connect, 3000);
       };

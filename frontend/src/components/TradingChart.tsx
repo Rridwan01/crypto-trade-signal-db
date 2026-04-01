@@ -94,8 +94,8 @@ export default function TradingChart({
           candleSeries.setData(uniqueData);
           setCandleData(uniqueData);
         }
-      } catch (error) {
-        console.error("🔴 Chart fetch failed:", error);
+      } catch {
+        // Silent error - chart data fetch failed, render empty chart
       }
     };
 
@@ -170,8 +170,8 @@ export default function TradingChart({
 
         priceLinesRef.current.push(l1, l2, l3, l4);
       }
-    } catch (err) {
-      console.warn("Skipping zone draw:", err);
+    } catch {
+      // Silent error - zone drawing skipped
     }
   }, [zones, signals, candleData]);
 
