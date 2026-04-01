@@ -89,7 +89,7 @@ function App() {
     const fetchSignals = async () => {
       try {
         const response = await fetch(
-          "https://crypto-trade-signal-db.onrender.com/api/signals",
+          "https://crypto-trade-signal-db-1.onrender.com/api/signals",
         );
         const result = await response.json();
         if (result.status === "success") {
