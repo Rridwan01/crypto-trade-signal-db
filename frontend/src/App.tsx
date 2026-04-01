@@ -88,7 +88,9 @@ function App() {
   useEffect(() => {
     const fetchSignals = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/signals");
+        const response = await fetch(
+          "https://YOUR-RENDER-URL.onrender.com/api/signals",
+        );
         const result = await response.json();
         if (result.status === "success") {
           setBotData(result.data);
