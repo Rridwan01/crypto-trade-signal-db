@@ -37,6 +37,32 @@ def send_telegram_alert(asset, signal_type, zone, gap_size):
     except Exception as e:
         print(f"🔴 Failed to send Telegram alert: {e}")
 
+# The bot's sniper memory for zones waiting to be tapped
+PENDING_ZONES = {} 
+
+def send_telegram_entry_alert(asset, signal_type, zone_str):
+    if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN":
+        return
+
+    icon = "🎯"
+    action = "LONG" if "BULLISH" in signal_type else "SHORT"
+    
+    text = f"{icon} *PRECISE ENTRY TRIGGERED* {icon}\n*Asset:* {asset}/USDT\n*Action:* {action}\n*Mitigating Zone:* {zone_str}\n_The algorithmic FVG has been tapped!_"
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = json.dumps({
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text,
+        "parse_mode": "Markdown"
+    }).encode('utf-8')
+    
+    try:
+        req = urllib.request.Request(url, data=payload, method='POST')
+        req.add_header('Content-Type', 'application/json')
+        urllib.request.urlopen(req)
+    except Exception as e:
+        print(f"🔴 Failed to send Entry alert: {e}")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -160,18 +186,61 @@ async def get_signals():
             active_signals = find_unmitigated_fvgs(df)
             structure = analyze_market_structure(df, asset_key)
             
-            # --- TELEGRAM ALERT LOGIC ---
+            # Get the live price extremes from the current unclosed candle
+            current_high = float(df.iloc[-1]['high'])
+            current_low = float(df.iloc[-1]['low'])
+
+            # --- 1. LOG NEW GAPS INTO SNIPER MEMORY ---
             for sig in active_signals:
                 unique_sig_id = f"{asset_key}_{sig['time']}"
                 
                 if unique_sig_id not in ALERTED_SIGNALS:
                     ALERTED_SIGNALS.add(unique_sig_id)
+                    
+                    # Optional: You can comment this out if you ONLY want entry alerts, 
+                    # not the "FVG Detected" alerts anymore.
                     send_telegram_alert(
-                        asset=asset_key, 
-                        signal_type=sig['type'], 
-                        zone=sig['zone'], 
-                        gap_size=sig['gap_size']
+                        asset=asset_key, signal_type=sig['type'], 
+                        zone=sig['zone'], gap_size=sig['gap_size']
                     )
+                    
+                    # Parse the zone coordinates (e.g. "65000.50 - 64800.00")
+                    try:
+                        prices = [float(p.replace(',', '')) for p in sig['zone'].split(" - ")]
+                        PENDING_ZONES[unique_sig_id] = {
+                            'asset': asset_key,
+                            'type': sig['type'],
+                            'top': max(prices),
+                            'bottom': min(prices)
+                        }
+                    except Exception as e:
+                        print(f"Could not parse zone coordinates: {e}")
+
+            # --- 2. DETECT MITIGATION (THE PRECISE ENTRY) ---
+            mitigated_keys = []
+            for sig_id, zone_data in PENDING_ZONES.items():
+                if zone_data['asset'] == asset_key:
+                    is_mitigated = False
+                    
+                    if "BULLISH" in zone_data['type']:
+                        # If price drops down and taps the top of the Bullish FVG
+                        if current_low <= zone_data['top']:
+                            is_mitigated = True
+                            
+                    elif "BEARISH" in zone_data['type']:
+                        # If price pushes up and taps the bottom of the Bearish FVG
+                        if current_high >= zone_data['bottom']:
+                            is_mitigated = True
+                            
+                    if is_mitigated:
+                        zone_str = f"{zone_data['top']} - {zone_data['bottom']}"
+                        send_telegram_entry_alert(asset_key, zone_data['type'], zone_str)
+                        # Queue this zone to be deleted so we don't spam the alert
+                        mitigated_keys.append(sig_id)
+            
+            # --- 3. CLEAN UP MEMORY ---
+            for key in mitigated_keys:
+                del PENDING_ZONES[key]
             
             # Bundle the FVG signals into the structure object
             structure["active_signals"] = active_signals

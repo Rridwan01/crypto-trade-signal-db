@@ -27,6 +27,8 @@ interface BotSignalData {
     demandLow: string;
   };
   active_signals: Signal[];
+  pending_count?: number;
+  recent_mitigations?: { type: string; zone: string }[];
 }
 
 interface BotData {
@@ -281,6 +283,57 @@ function App() {
             loading={botLoading}
             signals={leftData.active_signals}
           />
+
+          {/* --- SNIPER EXECUTION DASHBOARD (LEFT) --- */}
+          <div className="mt-4 space-y-3">
+            {/* Pending Targets Counter */}
+            <div className="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-800">
+              <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">
+                Pending Targets
+              </span>
+              <span className="text-blue-400 font-bold font-mono">
+                {leftData.pending_count || 0} Awaiting Tap
+              </span>
+            </div>
+
+            {/* Recent Mitigations (The Hits) */}
+            {leftData.recent_mitigations &&
+              leftData.recent_mitigations.length > 0 && (
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-3">
+                  <span className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2 block">
+                    Confirmed Entries
+                  </span>
+                  <div className="space-y-2">
+                    {leftData.recent_mitigations.map(
+                      (hit: { type: string; zone: string }, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between text-sm p-2 rounded bg-black/50 border-l-2 border-emerald-500"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-emerald-500 animate-pulse">
+                              🎯
+                            </span>
+                            <span
+                              className={
+                                hit.type.includes("BULLISH")
+                                  ? "text-emerald-400 font-bold"
+                                  : "text-rose-400 font-bold"
+                              }
+                            >
+                              {hit.type.includes("BULLISH") ? "LONG" : "SHORT"}
+                            </span>
+                          </div>
+                          <span className="text-gray-300 font-mono text-xs">
+                            Zone: {hit.zone}
+                          </span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+          </div>
         </div>
 
         {/* --- LIVE FVG SIGNALS (RIGHT COLUMN) --- */}
@@ -290,6 +343,57 @@ function App() {
             loading={botLoading}
             signals={rightData.active_signals}
           />
+
+          {/* --- SNIPER EXECUTION DASHBOARD (RIGHT) --- */}
+          <div className="mt-4 space-y-3">
+            {/* Pending Targets Counter */}
+            <div className="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-800">
+              <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">
+                Pending Targets
+              </span>
+              <span className="text-blue-400 font-bold font-mono">
+                {rightData.pending_count || 0} Awaiting Tap
+              </span>
+            </div>
+
+            {/* Recent Mitigations (The Hits) */}
+            {rightData.recent_mitigations &&
+              rightData.recent_mitigations.length > 0 && (
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-3">
+                  <span className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2 block">
+                    Confirmed Entries
+                  </span>
+                  <div className="space-y-2">
+                    {rightData.recent_mitigations.map(
+                      (hit: { type: string; zone: string }, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between text-sm p-2 rounded bg-black/50 border-l-2 border-emerald-500"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-emerald-500 animate-pulse">
+                              🎯
+                            </span>
+                            <span
+                              className={
+                                hit.type.includes("BULLISH")
+                                  ? "text-emerald-400 font-bold"
+                                  : "text-rose-400 font-bold"
+                              }
+                            >
+                              {hit.type.includes("BULLISH") ? "LONG" : "SHORT"}
+                            </span>
+                          </div>
+                          <span className="text-gray-300 font-mono text-xs">
+                            Zone: {hit.zone}
+                          </span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+          </div>
         </div>
 
         {/* --- BOTTOM LOG SECTION CARD --- */}
