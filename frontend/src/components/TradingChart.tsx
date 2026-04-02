@@ -61,7 +61,6 @@ export default function TradingChart({
 
     chartRef.current = chart;
 
-    // ✨ THE V5 FIX: No more hacks! We pass CandlestickSeries natively into addSeries
     const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: "#10b981", downColor: "#f43f5e", borderVisible: false,
       wickUpColor: "#10b981", wickDownColor: "#f43f5e",
@@ -115,7 +114,7 @@ export default function TradingChart({
   }, [asset]);
 
   // ==========================================
-  // EFFECT 2: DRAW ZONES AND FVG MARKERS
+  // EFFECT 2: DRAW ZONES AND FVG MARKERS.
   // ==========================================
   useEffect(() => {
     if (!seriesRef.current || candleData.length === 0) return;

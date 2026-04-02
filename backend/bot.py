@@ -15,12 +15,15 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 ALERTED_SIGNALS = set()
 
+# The bot's sniper memory for zones waiting to be tapped
+PENDING_ZONES = {} 
+RECENT_MITIGATIONS = [] # NEW: Stores the hits for the React dashboard!
+
 def send_telegram_alert(asset, signal_type, zone, gap_size):
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN":
         return
 
     icon = "🟢" if "BULLISH" in signal_type else "🔴"
-    # Formatting with Markdown for clean bold text
     text = f"{icon} *{signal_type} DETECTED* {icon}\n*Asset:* {asset}/USDT\n*Zone:* {zone}\n*Gap Size:* {gap_size} points\n_Awaiting mitigation for entry._"
     
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -36,9 +39,6 @@ def send_telegram_alert(asset, signal_type, zone, gap_size):
         urllib.request.urlopen(req)
     except Exception as e:
         print(f"🔴 Failed to send Telegram alert: {e}")
-
-# The bot's sniper memory for zones waiting to be tapped
-PENDING_ZONES = {} 
 
 def send_telegram_entry_alert(asset, signal_type, zone_str):
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN":
@@ -74,7 +74,6 @@ app.add_middleware(
 )
 
 def find_unmitigated_fvgs(df):
-    """Scans for unmitigated Fair Value Gaps."""
     signals = []
     for i in range(2, len(df)):
         c1 = df.iloc[i-2]
@@ -115,12 +114,10 @@ def find_unmitigated_fvgs(df):
     return signals
 
 def analyze_market_structure(df, asset_key):
-    """Calculates Trend, Logic, and Supply/Demand Zones dynamically."""
     df['sma_20'] = df['close'].rolling(window=20).mean()
     current_close = df.iloc[-1]['close']
     current_sma = df.iloc[-1]['sma_20']
     
-    # Calculate percentage distance from SMA to measure momentum
     distance_from_sma = ((current_close - current_sma) / current_sma) * 100
 
     if current_close > current_sma:
@@ -168,25 +165,22 @@ async def root():
 @app.get("/api/signals")
 async def get_signals():
     exchange = ccxt.bybit({'enableRateLimit': True})
-    
-    # We will fetch data for all three dashboard assets
     symbols = ['BTC/USDT', 'SOL/USDT', 'ETH/USDT']
     market_data = {}
+    
+    global RECENT_MITIGATIONS
 
     try:
         for symbol in symbols:
-            asset_key = symbol.split('/')[0] # Extracts 'BTC', 'SOL', or 'ETH'
+            asset_key = symbol.split('/')[0]
             
-            # Fetch 50 candles on the 15-minute timeframe
             candles = await exchange.fetch_ohlcv(symbol, '15m', limit=50)
             df = pd.DataFrame(candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
 
-            # Run our algorithmic scanners
             active_signals = find_unmitigated_fvgs(df)
             structure = analyze_market_structure(df, asset_key)
             
-            # Get the live price extremes from the current unclosed candle
             current_high = float(df.iloc[-1]['high'])
             current_low = float(df.iloc[-1]['low'])
 
@@ -197,16 +191,13 @@ async def get_signals():
                 if unique_sig_id not in ALERTED_SIGNALS:
                     ALERTED_SIGNALS.add(unique_sig_id)
                     
-                    # Optional: You can comment this out if you ONLY want entry alerts, 
-                    # not the "FVG Detected" alerts anymore.
                     send_telegram_alert(
                         asset=asset_key, signal_type=sig['type'], 
                         zone=sig['zone'], gap_size=sig['gap_size']
                     )
                     
-                    # Parse the zone coordinates (e.g. "65000.50 - 64800.00")
                     try:
-                        prices = [float(p.replace(',', '')) for p in sig['zone'].split(" - ")]
+                        prices = [float(p.replace(',', '')) for p in sig['zone'].split(" to ")]
                         PENDING_ZONES[unique_sig_id] = {
                             'asset': asset_key,
                             'type': sig['type'],
@@ -223,27 +214,37 @@ async def get_signals():
                     is_mitigated = False
                     
                     if "BULLISH" in zone_data['type']:
-                        # If price drops down and taps the top of the Bullish FVG
                         if current_low <= zone_data['top']:
                             is_mitigated = True
-                            
                     elif "BEARISH" in zone_data['type']:
-                        # If price pushes up and taps the bottom of the Bearish FVG
                         if current_high >= zone_data['bottom']:
                             is_mitigated = True
                             
                     if is_mitigated:
-                        zone_str = f"{zone_data['top']} - {zone_data['bottom']}"
+                        zone_str = f"{zone_data['bottom']} to {zone_data['top']}"
                         send_telegram_entry_alert(asset_key, zone_data['type'], zone_str)
-                        # Queue this zone to be deleted so we don't spam the alert
+                        
+                        # --- NEW: Save this for the React Dashboard! ---
+                        RECENT_MITIGATIONS.append({
+                            "asset": asset_key,
+                            "type": zone_data['type'],
+                            "zone": zone_str
+                        })
+                        
                         mitigated_keys.append(sig_id)
             
             # --- 3. CLEAN UP MEMORY ---
             for key in mitigated_keys:
                 del PENDING_ZONES[key]
             
-            # Bundle the FVG signals into the structure object
+            # Keep memory clean (only hold last 30 hits)
+            RECENT_MITIGATIONS = RECENT_MITIGATIONS[-30:]
+            
+            # --- 4. BUNDLE EVERYTHING FOR REACT ---
             structure["active_signals"] = active_signals
+            structure["pending_count"] = sum(1 for z in PENDING_ZONES.values() if z['asset'] == asset_key)
+            structure["recent_mitigations"] = [m for m in RECENT_MITIGATIONS if m['asset'] == asset_key]
+            
             market_data[asset_key] = structure
 
         return {
